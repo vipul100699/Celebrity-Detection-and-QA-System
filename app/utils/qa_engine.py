@@ -59,6 +59,8 @@ class QAEngine:
         
         # Check if the request was successful
         if response.status_code != 200:
+            print(f"QA Engine API Error: Status Code {response.status_code}")
+            print(f"QA Engine API Response: {response.text}")
             return "Sorry! I couldn't find the answer" # Return default message if request failed
         
         # Extract and return the content from the API response

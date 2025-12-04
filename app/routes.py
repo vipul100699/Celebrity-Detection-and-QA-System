@@ -46,6 +46,8 @@ def index():
                 
                 # Identify the celebrity in the image
                 celeb_info, celeb_name = celebrity_detector.identity(img_bytes)
+                print(f"DEBUG: celeb_name: {celeb_name}")
+                print(f"DEBUG: celeb_info:\n{celeb_info}")
 
                 # If a face is detected, encode the image for display
                 if face_box is not None:

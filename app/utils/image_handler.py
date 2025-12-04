@@ -21,6 +21,10 @@ def process_image(image_file):
     nparr = np.frombuffer(image_bytes, np.uint8) # Convert to numpy array
 
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # Decode image
+    
+    if img is None:
+        return image_bytes, None
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Converting the image to grayscale
 
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml') # Load face detector

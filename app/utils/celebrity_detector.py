@@ -43,11 +43,13 @@ class CelebrityDetector:
                             "text": """
                             You are celebrity recognition expert AI.
                             Identify the celebrity in the image. If known, respond in the below format:
-                            -**Full Name**
-                            -**Profession**
-                            -**Nationality**
-                            -**Famous For**
-                            -**Top Achievements**
+                            - **Full Name**: [Name]
+                            - **Profession**: [Profession]
+                            - **Nationality**: [Nationality]
+                            - **Famous For**: [Reason]
+                            - **Top Achievements**:
+                              - [Achievement 1]
+                              - [Achievement 2]
 
                             If Unknown, return Unknown
                             """
@@ -68,6 +70,8 @@ class CelebrityDetector:
         response = requests.post(self.api_url, headers=headers, json=prompt) # Send request to Groq API
 
         if response.status_code != 200:
+            print(f"API Error: Status Code {response.status_code}")
+            print(f"API Response: {response.text}")
             return "Unknown", "" # Return unknown if request failed
         
         result = response.json()['choices'][0]['message']['content'] # Extract content from response
@@ -85,7 +89,9 @@ class CelebrityDetector:
             str: The extracted full name, or "Unknown" if not found.
         """
         for line in content.splitlines():
-            if line.lower().startswith("-**full name**"): # Check for name line
-                return line.split(":")[1].strip() # Extract and clean name
-
+            if "**full name**" in line.lower(): # Check for name line
+                parts = line.split(":")
+                if len(parts) > 1:
+                    return parts[1].strip() # Extract and clean name
+        
         return "Unknown"
