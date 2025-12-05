@@ -58,8 +58,7 @@
         </div>
 
         <form method="POST" class="mt-6 space-y-3">
-          <input type="hidden" name="celeb_name"
-            value="{{ celeb_info.splitlines()[0].split(':')[-1] if '**Full Name**' in celeb_info else 'Unknown' }}">
+          <input type="hidden" name="celeb_name" value="{{ celeb_name }}">
           <input type="hidden" name="celeb_info" value="{{ celeb_info }}">
           <input type="hidden" name="result_img_data" value="{{ result_img_data }}">
 

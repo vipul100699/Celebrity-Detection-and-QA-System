@@ -70,6 +70,7 @@ def index():
     # Render the index template with all the collected information
     return render_template(
         "index.html",
+        celeb_name=celeb_name,
         celeb_info=celeb_info,
         result_img_data=result_img_data,
         user_question=user_question,

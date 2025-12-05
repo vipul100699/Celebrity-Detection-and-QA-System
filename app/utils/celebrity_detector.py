@@ -41,7 +41,10 @@ class CelebrityDetector:
                         {
                             "type": "text",
                             "text": """
-                            You are celebrity recognition expert AI.
+                            You are a celebrity recognition expert AI.
+                            Analyze the facial features of the person in the image carefully.
+                            Do not guess. If you are not completely sure, return Unknown.
+                            
                             Identify the celebrity in the image. If known, respond in the below format:
                             - **Full Name**: [Name]
                             - **Profession**: [Profession]
