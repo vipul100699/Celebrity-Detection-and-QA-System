@@ -1,0 +1,80 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: google/cloud-sdk:latest # Use Google Cloud SDK image for gcloud/kubectl commands
+    working_directory: ~/repo
+
+jobs:
+  checkout_code:
+    executor: docker-executor
+    steps:
+      - checkout # Check out source code from the repository
+
+  build_docker_image:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker # Enable Docker daemon for building images
+      - run: 
+          name: Authenticate with Google Cloud
+          command: |
+            # Decode the base64 encoded service account key stored in environment variables
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+            
+            # Activate the service account using the key file
+            gcloud auth activate-service-account --key-file gcp-key.json
+            
+            # Configure Docker to authenticate with Google Artifact Registry
+            gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
+
+      - run:
+          name: Build and Push Image
+          command: |
+            # Build the Docker image tagged for Google Artifact Registry
+            docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest .
+            
+            # Push the image to the registry
+            docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest
+
+  deploy_to_gke:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: 
+          name: Authenticate with Google Cloud
+          command: |
+            # Re-authenticate in the deploy job (jobs run in fresh environments)
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+            gcloud auth activate-service-account --key-file gcp-key.json
+            gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
+
+      - run: 
+          name: Configure GKE
+          command: |
+            # Get credentials for the GKE cluster to enable kubectl commands
+            gcloud container clusters get-credentials $GKE_CLUSTER --region $GOOGLE_COMPUTE_REGION --project $GOOGLE_PROJECT_ID
+
+      - run:
+          name: Deploy to GKE
+          command: |
+            # Apply the Kubernetes deployment configuration
+            kubectl apply -f kubernetes-deployment.yml --validate=false
+            
+            # Restart the deployment to pull the latest image
+            kubectl rollout restart deployment llmops-app
+
+
+workflows:
+  version: 2
+  deploy_pipeline:
+    jobs:
+      - checkout_code
+      - build_docker_image:
+          requires:
+            - checkout_code
+      - deploy_to_gke:
+          requires:
+            - build_docker_image
