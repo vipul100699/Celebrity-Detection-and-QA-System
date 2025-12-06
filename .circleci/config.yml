@@ -78,3 +78,47 @@ workflows:
       - deploy_to_gke:
           requires:
             - build_docker_image
+
+
+# # For deploying the application to Render, config.yml should look like this:
+
+# version: 2.1
+
+# executors:
+#   docker-executor:
+#     docker:
+#       - image: cimg/base:stable # Standard lightweight image
+
+# jobs:
+#   build_and_push:
+#     executor: docker-executor
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - run:
+#           name: Docker Login
+#           command: |
+#             # Uses DOCKER_USER and DOCKER_PASS env vars from CircleCI project settings
+#             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+#       - run:
+#           name: Build and Push to Docker Hub
+#           command: |
+#              docker build -t $DOCKER_USER/celebrity-detector:latest .
+#              docker push $DOCKER_USER/celebrity-detector:latest
+
+#   deploy_to_render:
+#     executor: docker-executor
+#     steps:
+#       - run:
+#           name: Trigger Render Deploy
+#           # Render provides a "Deploy Hook URL" in their settings
+#           command: curl "$RENDER_DEPLOY_HOOK_URL"
+
+# workflows:
+#   version: 2
+#   deploy_pipeline:
+#     jobs:
+#       - build_and_push
+#       - deploy_to_render:
+#           requires:
+#             - build_and_push
